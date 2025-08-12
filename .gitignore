@@ -1,0 +1,44 @@
+﻿# Arquivos do Django
+*.pyc
+*~
+__pycache__/
+*.sqlite3
+*.pyo
+*.pyd
+.DS_Store
+.env
+.env/
+venv/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos de cache
+.pytest_cache/
+.mypy_cache/
+
+# Arquivos estáticos coletados
+/staticfiles/
+
+# Arquivos de mídia
+/media/
+
+# Banco de dados local
+db.sqlite3
+
+# Node modules (caso tenha)
+node_modules/
+
+# Arquivos de ambiente
+.env
+*.env
+
+# Logs
+*.log

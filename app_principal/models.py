@@ -1,0 +1,51 @@
+from django.db import models
+
+class DadosImportados(models.Model):
+    ref_giant = models.CharField(max_length=255)
+    mawb = models.CharField(max_length=255, blank=True, null=True)
+    hawb = models.CharField(max_length=255, blank=True, null=True)
+    q = models.CharField(max_length=255, blank=True, null=True)
+    c3 = models.CharField(max_length=255, blank=True, null=True)
+    deliveryid = models.CharField(max_length=255, blank=True, null=True)
+    sostatus_releasedonholdreturned = models.CharField(max_length=255, blank=True, null=True)
+    data_liberacao = models.DateField(blank=True, null=True)
+    cipbrl = models.CharField(max_length=255, blank=True, null=True)
+    pc = models.CharField(max_length=255, blank=True, null=True)
+    peso = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    peso_cobravel = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    tipo = models.CharField(max_length=255, blank=True, null=True)
+    pupdt = models.DateField(blank=True, null=True)
+    ciok = models.DateField(blank=True, null=True)
+    lientrydt = models.DateField(blank=True, null=True)
+    liok = models.DateField(blank=True, null=True)
+    ok_to_ship = models.CharField(max_length=255, blank=True, null=True)
+    li = models.CharField(max_length=255, blank=True, null=True)
+    hawbdt = models.DateField(blank=True, null=True)
+    estimatedbookingdt = models.DateField(blank=True, null=True)
+    arrivaldestinationdt = models.DateField(blank=True, null=True)
+    solicitacao_fundos = models.CharField(max_length=255, blank=True, null=True)
+    fundos_recebidos = models.CharField(max_length=255, blank=True, null=True)
+    eadidt = models.DateField(blank=True, null=True)
+    diduedt = models.DateField(blank=True, null=True)
+    diduenumber = models.CharField(max_length=255, blank=True, null=True)
+    icmspago = models.DateField(blank=True, null=True)
+    canal_cor = models.CharField(max_length=255, blank=True, null=True)
+    data_liberacao_ccr = models.DateField(blank=True, null=True)
+    data_nfe = models.DateField(blank=True, null=True)
+    numero_nfe = models.CharField(max_length=255, blank=True, null=True)
+    nftgdt = models.DateField(blank=True, null=True)
+    nftg = models.CharField(max_length=255, blank=True, null=True)
+    dlvatdestination = models.DateField(blank=True, null=True)
+    status_impexp = models.CharField(max_length=255, blank=True, null=True)
+    data_estimada = models.DateField(blank=True, null=True)
+    eventos = models.TextField(blank=True, null=True)
+    real_lead_time = models.CharField(max_length=255, blank=True, null=True)
+    ship_failure_days = models.CharField(max_length=255, blank=True, null=True)
+    tipo_justificativa_atraso = models.CharField(max_length=255, blank=True, null=True)
+    justificativa_atraso = models.CharField(max_length=255, blank=True, null=True)
+    
+    class Meta:
+        db_table = 'dados_importados'
+
+    def __str__(self):
+        return self.ref_giant

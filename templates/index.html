@@ -1,0 +1,70 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giant Cargo - Tracking</title>
+  <script>
+    // CSRF token já disponível para fetch
+    const csrfToken = "{{ csrf_token }}";
+  </script>
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-theme-alpine.css" />
+</head>
+<body>
+  <div id="loading-indicator" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000;">
+    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--clr-secondary);"></i>
+  </div>
+
+  <div id="error-message" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); 
+    background:#ff6b6b; color:white; padding:10px 20px; border-radius:5px; z-index:1000;">
+  </div>
+
+  <header class="dashboard__header">
+    <h1 class="dashboard__title">
+      <i class="fas fa-ship" aria-hidden="true"></i>
+      Giant Cargo - Tracking
+    </h1>
+    <div class="search-container">
+      <i class="fas fa-search search-icon" aria-hidden="true"></i>
+      <input id="search-input" class="search-input" type="search" placeholder="Procurar..." aria-label="Pesquisar" />
+    </div>
+  </header>
+
+  <main class="table-container">
+    <div class="table-toolbar">
+      <div class="pagination-info">
+        Mostrando <span id="showing-from">0</span>–<span id="showing-to">0</span> de <span id="total-items">0</span>
+        | Página <span id="current-page">1</span> de <span id="total-pages">1</span>
+      </div>
+      <div class="pagination-controls">
+        <select id="items-per-page" class="select-per-page">
+          <option value="10">10 registros</option>
+          <option value="25">25 registros</option>
+          <option value="50">50 registros</option>
+          <option value="100">100 registros</option>
+        </select>
+        <button id="first-page" class="pagination-button" title="Primeira página"><i class="fas fa-step-backward"></i></button>
+        <button id="prev-page" class="pagination-button" title="Página anterior"><i class="fas fa-chevron-left"></i></button>
+        <button id="next-page" class="pagination-button" title="Próxima página"><i class="fas fa-chevron-right"></i></button>
+        <button id="last-page" class="pagination-button" title="Última página"><i class="fas fa-step-forward"></i></button>
+      </div>
+    </div>
+
+    <section class="ag-theme-alpine grid-wrapper" id="myGrid"></section>
+  </main>
+
+  <script>
+    // Role definido pela view index.py
+    const USER_ROLE = "{{ role|default:'visualizador' }}";
+    console.log("USER_ROLE:", USER_ROLE);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.noStyle.js"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
