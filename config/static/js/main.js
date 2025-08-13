@@ -1,7 +1,6 @@
 ﻿const { createGrid } = agGrid;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Elementos do DOM
   const gridDiv = document.getElementById('myGrid');
   const searchInput = document.getElementById('search-input');
   
@@ -11,15 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Variáveis de estado
   let gridApi;
   let rowData = [];
   let filteredData = [];
   let currentPage = 1;
   let pageSize = parseInt(document.getElementById('items-per-page').value) || 10;
 
-  // Configuração das colunas
-  const columnDefs = [
+  // Campos editáveis
+  const editableFields = [
+    'q', 'sostatus_releasedonholdreturned', 'data_liberacao',
+    'data_nfe', 'numero_nfe', 'nftgdt', 'nftg',
+    'dlvatdestination', 'status_impexp', 'eventos'
+  ];
+
+  // Todas as colunas
+  const allColumns = [
     { headerName: 'Ref Giant', field: 'ref_giant', sortable: true, filter: true },
     { headerName: 'MAWB', field: 'mawb', sortable: true, filter: true },
     { headerName: 'HAWB', field: 'hawb', sortable: true, filter: true },
@@ -56,21 +61,28 @@ document.addEventListener('DOMContentLoaded', () => {
     { headerName: 'NFTG', field: 'nftg', sortable: true, filter: true },
     { headerName: 'DLVAT Destination', field: 'dlvatdestination', sortable: true, filter: true },
     { headerName: 'Status Impexp', field: 'status_impexp', sortable: true, filter: true },
-    { headerName: 'Data Estimada', field: 'data_estimada', sortable: true, filter: true },
-    { 
-      headerName: 'Eventos', 
-      field: 'eventos', 
-      sortable: false, 
-      filter: true, 
-      wrapText: true,
-      autoHeight: false,
-      cellStyle: { 'white-space': 'normal', 'line-height': '1.5' }
-    },
+    { headerName: 'Eventos', field: 'eventos', sortable: false, filter: true },
     { headerName: 'Real Lead Time', field: 'real_lead_time', sortable: true, filter: true },
     { headerName: 'Ship Failure Days', field: 'ship_failure_days', sortable: true, filter: true },
     { headerName: 'Tipo Justificativa Atraso', field: 'tipo_justificativa_atraso', sortable: true, filter: true },
     { headerName: 'Justificativa Atraso', field: 'justificativa_atraso', sortable: true, filter: true }
   ];
+
+  // Separar colunas
+  const editableColumns = [];
+  const nonEditableColumns = [];
+
+  allColumns.forEach(col => {
+    if (editableFields.includes(col.field)) {
+      col.editable = true;
+      col.headerClass = 'editable-header';
+      editableColumns.push(col);
+    } else {
+      nonEditableColumns.push(col);
+    }
+  });
+
+  const columnDefs = [...nonEditableColumns, ...editableColumns];
 
   const gridOptions = {
     columnDefs,
@@ -90,38 +102,36 @@ document.addEventListener('DOMContentLoaded', () => {
     onGridReady: (params) => {
       gridApi = params.api;
       loadData();
+    },
+    onCellValueChanged: async (event) => {
+      const { data, colDef, newValue, oldValue } = event;
+      if (newValue === oldValue) return;
+
+      try {
+        const response = await fetch(`/api/dados/${data.id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({ [colDef.field]: newValue })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          showError(`Erro ao atualizar: ${JSON.stringify(errorData)}`);
+          event.node.setDataValue(colDef.field, oldValue); // reverte
+        }
+      } catch (err) {
+        console.error(err);
+        showError('Erro de conexão ao atualizar');
+        event.node.setDataValue(colDef.field, oldValue); // reverte
+      }
     }
   };
 
-  // Cria o grid
   createGrid(gridDiv, gridOptions);
 
-  // Função para atualizar o grid
-  function updateGrid(dataToShow) {
-    if (!gridApi) {
-      console.error('Grid API não disponível');
-      showError('Tabela não está pronta. Recarregue a página.');
-      return;
-    }
-
-    try {
-      const totalItems = dataToShow.length;
-      const totalPages = Math.ceil(totalItems / pageSize) || 1;
-      currentPage = Math.max(1, Math.min(currentPage, totalPages));
-
-      const start = (currentPage - 1) * pageSize;
-      const end = start + pageSize;
-      const pageItems = dataToShow.slice(start, end);
-
-      gridApi.setRowData(pageItems);
-      updatePaginationControls(totalItems, start, end, currentPage, totalPages);
-    } catch (error) {
-      console.error('Erro ao atualizar grid:', error);
-      showError('Erro ao atualizar dados');
-    }
-  }
-
-  // Função para carregar dados da API
   async function loadData() {
     try {
       showLoading(true);
@@ -129,28 +139,31 @@ document.addEventListener('DOMContentLoaded', () => {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
+      if (!response.ok) throw new Error(`Erro ${response.status}`);
 
-      if (response.status === 403) {
-        throw new Error('Acesso negado');
-      }
-
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}`);
-      }
-
-      const data = await response.json();
-      rowData = data;
-      filteredData = [...data];
+      rowData = await response.json();
+      filteredData = [...rowData];
       updateGrid(filteredData);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      showError(error.message);
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
     } finally {
       showLoading(false);
     }
   }
 
-  // Funções auxiliares
+  function updateGrid(dataToShow) {
+    if (!gridApi) return;
+    const totalItems = dataToShow.length;
+    const totalPages = Math.ceil(totalItems / pageSize) || 1;
+    currentPage = Math.max(1, Math.min(currentPage, totalPages));
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageItems = dataToShow.slice(start, end);
+    gridApi.setRowData(pageItems);
+    updatePaginationControls(totalItems, start, end, currentPage, totalPages);
+  }
+
   function updatePaginationControls(totalItems, start, end, currentPage, totalPages) {
     const elements = {
       'showing-from': totalItems === 0 ? 0 : start + 1,
@@ -159,10 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'current-page': currentPage,
       'total-pages': totalPages
     };
-
     Object.entries(elements).forEach(([id, value]) => {
-      const element = document.getElementById(id);
-      if (element) element.textContent = value;
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
     });
   }
 
@@ -171,32 +183,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loader) loader.style.display = show ? 'block' : 'none';
   }
 
-  function showError(message) {
-    const errorElement = document.getElementById('error-message');
-    if (errorElement) {
-      errorElement.textContent = message;
-      errorElement.style.display = 'block';
-      setTimeout(() => errorElement.style.display = 'none', 5000);
+  function showError(msg) {
+    const el = document.getElementById('error-message');
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 5000);
     }
   }
 
-  // Pesquisa com debounce
   let searchTimeout;
   searchInput.addEventListener('input', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       const term = searchInput.value.trim().toLowerCase();
-      filteredData = term ? rowData.filter(item => 
-        Object.values(item).some(value => 
-          value && value.toString().toLowerCase().includes(term)
-        )
-      ) : [...rowData];
+      filteredData = term
+        ? rowData.filter(item =>
+            Object.values(item).some(val => val && val.toString().toLowerCase().includes(term))
+          )
+        : [...rowData];
       currentPage = 1;
       updateGrid(filteredData);
     }, 300);
   });
 
-  // Paginação
   const paginationControls = {
     'first-page': () => currentPage = 1,
     'prev-page': () => currentPage > 1 && currentPage--,
@@ -208,16 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   Object.entries(paginationControls).forEach(([id, action]) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.addEventListener('click', () => {
-        action();
-        updateGrid(filteredData);
-      });
-    }
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => { action(); updateGrid(filteredData); });
   });
 
-  // Itens por página
   const itemsPerPageSelect = document.getElementById('items-per-page');
   if (itemsPerPageSelect) {
     itemsPerPageSelect.addEventListener('change', (e) => {

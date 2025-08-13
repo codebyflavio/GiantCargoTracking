@@ -152,3 +152,12 @@ body {
     --clr-border: #34495e;
   }
 }
+
+/* Header de colunas editáveis */
+.ag-theme-alpine .ag-header-cell.editable-header .ag-header-cell-label::after {
+  content: ' ✎'; /* Lápis */
+  font-size: 0.9rem;
+  color: var(--clr-secondary);
+  margin-left: 0.25rem;
+}
+

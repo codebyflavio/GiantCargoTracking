@@ -1,6 +1,8 @@
 ﻿from django.urls import path
-from .views import dados_list
+from . import views
 
 urlpatterns = [
-    path('dados/', dados_list, name='dados-list'),
+    path('', views.home, name='home'),
+    path('dados/', views.dados_list, name='dados_list'),
+    path('dados/<int:pk>/', views.dados_update, name='dados_update'),
 ]

@@ -1,4 +1,5 @@
-﻿import os
+﻿# script_watchdog.py  (versão atualizada)
+import os
 import time
 import shutil
 from datetime import datetime, date
@@ -79,16 +80,38 @@ def normaliza_valor(valor, field) -> Optional[object]:
         if isinstance(valor, (date, datetime)):
             return valor.date() if isinstance(valor, datetime) else valor
 
-    # Para string, padroniza lower e strip
+    # Para string, padroniza strip (mantive lower em seu código anterior, mas normalmente
+    # é melhor não lowerizar todos os campos; aqui apenas strip)
     if isinstance(valor, str):
-        return valor.strip().lower()
+        return valor.strip()
     
     # Caso contrário, retorna valor "as is"
     return valor
 
+# LISTA DOS CAMPOS QUE DEVEM SER IGNORADOS PELO SCRIPT (editáveis via UI apenas)
+EDITABLE_FIELDS = [
+    'q',
+    'sostatus_releasedonholdreturned',
+    'data_liberacao',
+    'data_nfe',
+    'numero_nfe',
+    'nftgdt',
+    'nftg',
+    'dlvatdestination',
+    'status_impexp',
+    'eventos'
+]
+
 def dados_sao_iguais(obj: DadosImportados, data: dict) -> bool:
+    """
+    Compara valores do objeto com os valores vindos do XML,
+    ignorando campos editáveis (EDITABLE_FIELDS).
+    """
     for field in DadosImportados._meta.get_fields():
         if not hasattr(field, 'column') or field.name not in data:
+            continue
+        if field.name in EDITABLE_FIELDS:
+            # Ignora campos editáveis na comparação
             continue
 
         valor_xml = normaliza_valor(data[field.name], field)
@@ -156,14 +179,23 @@ def process_xml_content(xml_content: str) -> Tuple[int, int, int]:
         inserted = updated = unchanged = 0
 
         for item in items:
-            data = {}
+            # Monta dicionário com valores vindos do XML (sem ainda filtrar editáveis)
+            raw_data = {}
             for tag_xml, field_name in tag_to_field.items():
                 elem = item.find(tag_xml)
                 if elem is not None and elem.text:
                     valor = elem.text.strip()
-                    data[field_name] = limpar_ref_giant(valor) if field_name == 'ref_giant' else valor
+                    raw_data[field_name] = limpar_ref_giant(valor) if field_name == 'ref_giant' else valor
 
-            # Conversão de tipos para campos específicos
+            # Se não tiver ref_giant, ignora
+            if not raw_data.get('ref_giant'):
+                log_warning("Item sem ref_giant ignorado.")
+                continue
+
+            # Filtra os campos que o script NÃO deve tocar (editáveis => serão ignorados)
+            data = {k: v for k, v in raw_data.items() if k not in EDITABLE_FIELDS}
+
+            # Conversão de tipos para campos específicos (aplica somente aos campos que estão em `data`)
             for field in DadosImportados._meta.get_fields():
                 if not hasattr(field, 'column') or field.name not in data:
                     continue
@@ -176,27 +208,34 @@ def process_xml_content(xml_content: str) -> Tuple[int, int, int]:
                     except (InvalidOperation, ValueError):
                         data[field.name] = None
 
-            if not data.get('ref_giant'):
-                log_warning("Item sem ref_giant ignorado.")
-                continue
-
             try:
-                obj = DadosImportados.objects.get(ref_giant=data['ref_giant'])
+                obj = DadosImportados.objects.get(ref_giant=data.get('ref_giant'))
             except DadosImportados.DoesNotExist:
+                # Ao criar, NÃO passamos campos editáveis (mantemos data filtrada)
+                # Se quiser manter um valor default para campos editáveis, faça isso explicitamente aqui.
                 DadosImportados.objects.create(**data)
                 inserted += 1
-                log_success(f"Item inserido ref_giant={data['ref_giant']}")
+                log_success(f"Item inserido ref_giant={data.get('ref_giant')}")
                 continue
 
-            if dados_sao_iguais(obj, data):
+            # Se for igual (ignorando campos editáveis), conta como sem alteração
+            if dados_sao_iguais(obj, {**raw_data}):
                 unchanged += 1
-                log_info(f"Item sem alterações ref_giant={data['ref_giant']}")
+                log_info(f"Item sem alterações ref_giant={data.get('ref_giant')}")
             else:
-                for k, v in data.items():
-                    setattr(obj, k, v)
-                obj.save()
-                updated += 1
-                log_success(f"Item atualizado ref_giant={data['ref_giant']}")
+                # Atualiza apenas os campos em `data` (ou seja, NÃO atualizamos campos editáveis)
+                if data:
+                    for k, v in data.items():
+                        setattr(obj, k, v)
+                    # salva apenas os campos que foram modificados para eficiência
+                    obj.save(update_fields=list(data.keys()))
+                    updated += 1
+                    log_success(f"Item atualizado ref_giant={data.get('ref_giant')}")
+                else:
+                    # data vazio significa que o XML só continha campos editáveis (que ignoramos),
+                    # portanto não há nada a atualizar pelo script.
+                    log_info(f"Ignorado update para ref_giant={data.get('ref_giant')} — apenas campos editáveis no XML.")
+                    unchanged += 1
 
         return inserted, updated, unchanged
 
