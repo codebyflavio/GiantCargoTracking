@@ -24,49 +24,50 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   // Todas as colunas
-  const allColumns = [
-    { headerName: 'Ref Giant', field: 'ref_giant', sortable: true, filter: true },
-    { headerName: 'MAWB', field: 'mawb', sortable: true, filter: true },
-    { headerName: 'HAWB', field: 'hawb', sortable: true, filter: true },
-    { headerName: 'Q', field: 'q', sortable: true, filter: true },
-    { headerName: 'C3', field: 'c3', sortable: true, filter: true },
-    { headerName: 'Delivery ID', field: 'deliveryid', sortable: true, filter: true },
-    { headerName: 'Status', field: 'sostatus_releasedonholdreturned', sortable: true, filter: true },
-    { headerName: 'Data Liberação', field: 'data_liberacao', sortable: true, filter: true },
-    { headerName: 'CIPBRL', field: 'cipbrl', sortable: true, filter: true },
-    { headerName: 'PC', field: 'pc', sortable: true, filter: true },
-    { headerName: 'Peso', field: 'peso', sortable: true, filter: true },
-    { headerName: 'Peso Cobrável', field: 'peso_cobravel', sortable: true, filter: true },
-    { headerName: 'Tipo', field: 'tipo', sortable: true, filter: true },
-    { headerName: 'PUPDT', field: 'pupdt', sortable: true, filter: true },
-    { headerName: 'CIOK', field: 'ciok', sortable: true, filter: true },
-    { headerName: 'Lientrydt', field: 'lientrydt', sortable: true, filter: true },
-    { headerName: 'Liok', field: 'liok', sortable: true, filter: true },
-    { headerName: 'Ok to Ship', field: 'ok_to_ship', sortable: true, filter: true },
-    { headerName: 'LI', field: 'li', sortable: true, filter: true },
-    { headerName: 'HAWBDT', field: 'hawbdt', sortable: true, filter: true },
-    { headerName: 'Estimated Booking DT', field: 'estimatedbookingdt', sortable: true, filter: true },
-    { headerName: 'Arrival Destination DT', field: 'arrivaldestinationdt', sortable: true, filter: true },
-    { headerName: 'Solicitação Fundos', field: 'solicitacao_fundos', sortable: true, filter: true },
-    { headerName: 'Fundos Recebidos', field: 'fundos_recebidos', sortable: true, filter: true },
-    { headerName: 'EADIDT', field: 'eadidt', sortable: true, filter: true },
-    { headerName: 'DIDUEDT', field: 'diduedt', sortable: true, filter: true },
-    { headerName: 'DIDUENUMBER', field: 'diduenumber', sortable: true, filter: true },
-    { headerName: 'ICMS Pago', field: 'icmspago', sortable: true, filter: true },
-    { headerName: 'Canal Cor', field: 'canal_cor', sortable: true, filter: true },
-    { headerName: 'Data Liberação CCR', field: 'data_liberacao_ccr', sortable: true, filter: true },
-    { headerName: 'Data NFE', field: 'data_nfe', sortable: true, filter: true },
-    { headerName: 'Número NFE', field: 'numero_nfe', sortable: true, filter: true },
-    { headerName: 'NFTGDT', field: 'nftgdt', sortable: true, filter: true },
-    { headerName: 'NFTG', field: 'nftg', sortable: true, filter: true },
-    { headerName: 'DLVAT Destination', field: 'dlvatdestination', sortable: true, filter: true },
-    { headerName: 'Status Impexp', field: 'status_impexp', sortable: true, filter: true },
-    { headerName: 'Eventos', field: 'eventos', sortable: false, filter: true },
-    { headerName: 'Real Lead Time', field: 'real_lead_time', sortable: true, filter: true },
-    { headerName: 'Ship Failure Days', field: 'ship_failure_days', sortable: true, filter: true },
-    { headerName: 'Tipo Justificativa Atraso', field: 'tipo_justificativa_atraso', sortable: true, filter: true },
-    { headerName: 'Justificativa Atraso', field: 'justificativa_atraso', sortable: true, filter: true }
-  ];
+const allColumns = [
+    { headerName: 'Q', field: 'q', sortable: true, filter: true, minWidth: 80 },
+    { headerName: 'C3#', field: 'c3', sortable: true, filter: true, minWidth: 80 },
+    { headerName: 'DELIVERY ID', field: 'deliveryid', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'SO STATUS - RELEASED / ON HOLD / RETURNED', field: 'sostatus_releasedonholdreturned', sortable: true, filter: true, minWidth: 220 },
+    { headerName: 'RELEASED DT', field: 'data_liberacao', sortable: true, filter: true, minWidth: 150 },
+    { headerName: 'MAWB', field: 'mawb', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'HAWB', field: 'hawb', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'CIP BRL', field: 'cipbrl', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'REF. GIANT', field: 'ref_giant', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'PC', field: 'pc', sortable: true, filter: true, minWidth: 80 },
+    { headerName: 'GROSS WEIGHT', field: 'peso', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'CHARGEABLE WEIGHT', field: 'peso_cobravel', sortable: true, filter: true, minWidth: 150 },
+    { headerName: 'TYPE', field: 'tipo', sortable: true, filter: true, minWidth: 100 },
+    { headerName: 'P/UP DT', field: 'pupdt', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'CI OK', field: 'ciok', sortable: true, filter: true, minWidth: 100 },
+    { headerName: 'LI ENTRY DT', field: 'lientrydt', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'LI OK', field: 'liok', sortable: true, filter: true, minWidth: 100 },
+    { headerName: 'OK TO SHIP', field: 'ok_to_ship', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'LI', field: 'li', sortable: true, filter: true, minWidth: 80 },
+    { headerName: 'HAWB DT', field: 'hawbdt', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'ESTIMATED BOOKING DT', field: 'estimatedbookingdt', sortable: true, filter: true, minWidth: 180 },
+    { headerName: 'ARRIVAL DESTINATION DT', field: 'arrivaldestinationdt', sortable: true, filter: true, minWidth: 200 },
+    { headerName: 'FUNDS REQUEST', field: 'solicitacao_fundos', sortable: true, filter: true, minWidth: 180 },
+    { headerName: 'FUNDS RECEIVED', field: 'fundos_recebidos', sortable: true, filter: true, minWidth: 180 },
+    { headerName: 'EADI DT', field: 'eadidt', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'DI / DUE DT', field: 'diduedt', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'DI / DUE NUMBER', field: 'diduenumber', sortable: true, filter: true, minWidth: 150 },
+    { headerName: 'ICMS PAID', field: 'icmspago', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'CHANNEL COLOR', field: 'canal_cor', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'CC RLSD DT', field: 'data_liberacao_ccr', sortable: true, filter: true, minWidth: 180 },
+    { headerName: 'NFE DT', field: 'data_nfe', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'NFE', field: 'numero_nfe', sortable: true, filter: true, minWidth: 140 },
+    { headerName: 'NFTG DT', field: 'nftgdt', sortable: true, filter: true, minWidth: 120 },
+    { headerName: 'NFTG', field: 'nftg', sortable: true, filter: true, minWidth: 100 },
+    { headerName: 'DLV AT DESTINATION', field: 'dlvatdestination', sortable: true, filter: true, minWidth: 180 },
+    { headerName: 'Status IMP/EXP', field: 'status_impexp', sortable: true, filter: true, minWidth: 150 },
+    { headerName: 'EVENT', field: 'eventos', sortable: false, filter: true, minWidth: 200 },
+    { headerName: 'REAL LEAD TIME', field: 'real_lead_time', sortable: true, filter: true, minWidth: 160 },
+    { headerName: 'SHIP FAILURE DAYS', field: 'ship_failure_days', sortable: true, filter: true, minWidth: 180 },
+    { headerName: 'TYPE', field: 'tipo_justificativa_atraso', sortable: true, filter: true, minWidth: 220 },
+    { headerName: 'FAILURE JUSTIFICATION', field: 'justificativa_atraso', sortable: true, filter: true, minWidth: 200 }
+];
+
 
   // Separar colunas
   const editableColumns = [];
@@ -87,14 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const gridOptions = {
     columnDefs,
     rowData: [],
+    autoHeaderHeight: true,
+    suppressMenuHide: true,
+    onGridSizeChanged: (params) => {
+      params.api.sizeColumnsToFit();
+    },
     defaultColDef: {
       sortable: true,
       filter: true,
       resizable: true,
-      flex: 1,
       minWidth: 100,
       wrapText: true,
-      autoHeight: false
+      autoHeight: false,
+      wrapHeaderText: true,
+      autoHeaderHeight: true
     },
     pagination: false,
     getRowHeight: () => 50,
@@ -102,6 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
     onGridReady: (params) => {
       gridApi = params.api;
       loadData();
+      setTimeout(() => {
+        params.api.sizeColumnsToFit();
+        params.api.resetRowHeights();
+      }, 100);
     },
     onCellValueChanged: async (event) => {
       const { data, colDef, newValue, oldValue } = event;
