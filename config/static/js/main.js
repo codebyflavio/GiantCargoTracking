@@ -1,4 +1,4 @@
-﻿// main.js (completo — usa agGrid global do CDN)
+﻿// main.js (corrigido para usar UMD global do CDN)
 const csrfToken =
   window.csrfToken ||
   document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
@@ -65,8 +65,13 @@ document.addEventListener("DOMContentLoaded", () => {
     "eventos",
   ];
 
-  // Todas as colunas (completas)
+  // ... (mantive suas colDefs, gridOptions etc. exatamente como estavam)
+
   const allColumns = [
+    // COLUNA PRINCIPAL (movida para primeira posição)
+    { headerName: "REF. GIANT", field: "ref_giant", sortable: true, filter: true, minWidth: 140 },
+
+    // Demais colunas na ordem original (com REF. GIANT removida da posição anterior)
     { headerName: "Q", field: "q", sortable: true, filter: true, minWidth: 80 },
     { headerName: "C3#", field: "c3", sortable: true, filter: true, minWidth: 80 },
     { headerName: "DELIVERY ID", field: "deliveryid", sortable: true, filter: true, minWidth: 140 },
@@ -81,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { headerName: "MAWB", field: "mawb", sortable: true, filter: true, minWidth: 120 },
     { headerName: "HAWB", field: "hawb", sortable: true, filter: true, minWidth: 120 },
     { headerName: "CIP BRL", field: "cipbrl", sortable: true, filter: true, minWidth: 120 },
-    { headerName: "REF. GIANT", field: "ref_giant", sortable: true, filter: true, minWidth: 140 },
     { headerName: "PC", field: "pc", sortable: true, filter: true, minWidth: 80 },
     { headerName: "GROSS WEIGHT", field: "peso", sortable: true, filter: true, minWidth: 120 },
     { headerName: "CHARGEABLE WEIGHT", field: "peso_cobravel", sortable: true, filter: true, minWidth: 150 },
@@ -119,10 +123,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { headerName: "REAL LEAD TIME", field: "real_lead_time", sortable: true, filter: true, minWidth: 160 },
     { headerName: "SHIP FAILURE DAYS", field: "ship_failure_days", sortable: true, filter: true, minWidth: 180 },
     { headerName: "TYPE", field: "tipo_justificativa_atraso", sortable: true, filter: true, minWidth: 220 },
-    { headerName: "FAILURE JUSTIFICATION", field: "justificativa_atraso", sortable: true, filter: true, minWidth: 200 },
+    { headerName: "FAILURE JUSTIFICATION", field: "justificativa_atraso", sortable: true, filter: true, minWidth: 200 }
   ];
 
-  // Separar colunas editáveis / não editáveis
+  // TRAVAR VISIBILIDADE DA PRIMEIRA COLUNA (nunca será permitida a ocultação via UI)
+  if (allColumns.length > 0) {
+    allColumns[0].lockVisible = true; // REF. GIANT ficará sempre visível
+  }
+
   const editableColumns = [];
   const nonEditableColumns = [];
 
@@ -143,9 +151,55 @@ document.addEventListener("DOMContentLoaded", () => {
     rowData: [],
     autoHeaderHeight: true,
     suppressMenuHide: true,
+
+    // <<== CORREÇÃO PRINCIPAL: evita que colunas sejam escondidas ao arrastar pra fora do grid
+    suppressDragLeaveHidesColumns: true,
+
     onGridSizeChanged: (params) => {
-      params.api.sizeColumnsToFit();
+      try {
+        params.api.sizeColumnsToFit();
+      } catch (e) {
+        console.error("Erro no onGridSizeChanged:", e);
+      }
     },
+
+    // Listen para eventos úteis e logging (ajuda no debug)
+    onGridReady: (params) => {
+      gridApi = params.api;
+      console.log("Grid pronto — inicializando dados...");
+      loadData();
+      setTimeout(() => {
+        try {
+          params.api.sizeColumnsToFit();
+          params.api.resetRowHeights();
+        } catch (e) {
+          console.error("Erro ao ajustar colunas/rows após load:", e);
+        }
+      }, 100);
+    },
+
+    // Se o usuário acidentalmente ocultar alguma coluna (por outra via), restaura automaticamente.
+    // Isso serve como "seguro extra" — você pode remover se quiser permitir ocultação manual.
+    onColumnVisible: (params) => {
+      try {
+        const colId = params.column.getColId();
+        if (params.visible === false) {
+          console.warn(`Coluna "${colId}" ficou invisível — restaurando automaticamente.`);
+          // pequeno timeout para garantir que outras ações do ag-Grid terminem
+          setTimeout(() => {
+            try {
+              params.columnApi.setColumnVisible(colId, true);
+            } catch (err) {
+              console.error("Falha ao restaurar visibilidade da coluna:", err);
+            }
+          }, 50);
+        }
+      } catch (err) {
+        console.error("Erro no onColumnVisible:", err);
+      }
+    },
+
+    // Mantém comportamento anterior de edição/atualização
     defaultColDef: {
       sortable: true,
       filter: true,
@@ -159,14 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pagination: false,
     getRowHeight: () => 50,
     domLayout: "autoHeight",
-    onGridReady: (params) => {
-      gridApi = params.api;
-      loadData();
-      setTimeout(() => {
-        params.api.sizeColumnsToFit();
-        params.api.resetRowHeights();
-      }, 100);
-    },
     onCellValueChanged: async (event) => {
       const { data, colDef, newValue, oldValue } = event;
       if (newValue === oldValue) return;
@@ -194,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  // cria o grid usando o global agGrid (CDN UMD)
+  // usa o global agGrid (CDN UMD)
   agGrid.createGrid(gridDiv, gridOptions);
 
   async function loadData() {
@@ -258,21 +304,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let searchTimeout;
-  if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        const term = searchInput.value.trim().toLowerCase();
-        filteredData = term
-          ? rowData.filter((item) =>
-              Object.values(item).some((val) => val && val.toString().toLowerCase().includes(term)),
-            )
-          : [...rowData];
-        currentPage = 1;
-        updateGrid(filteredData);
-      }, 300);
-    });
-  }
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const term = searchInput.value.trim().toLowerCase();
+      filteredData = term
+        ? rowData.filter((item) =>
+            Object.values(item).some((val) => val && val.toString().toLowerCase().includes(term)),
+          )
+        : [...rowData];
+      currentPage = 1;
+      updateGrid(filteredData);
+    }, 300);
+  });
 
   const paginationControls = {
     "first-page": () => (currentPage = 1),
