@@ -41,7 +41,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-
 # Configuração de Templates
 TEMPLATES = [
     {
@@ -112,9 +111,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'  # Para collectstatic
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Autenticação usando nomes das rotas (recomendado)
 LOGIN_URL = 'login'               # Nome da rota para login (ex: path('login/', ...)
-LOGIN_REDIRECT_URL = 'home'       # Nome da rota para onde redirecionar após login
+LOGIN_REDIRECT_URL = 'api_home'   # Redirecionar para /api/ após login
 LOGOUT_REDIRECT_URL = 'login'     # Nome da rota para onde redirecionar após logout
 
 # Configurações customizadas
@@ -140,3 +138,40 @@ SESSION_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'auth.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'auth': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)

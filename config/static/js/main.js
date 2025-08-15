@@ -1,12 +1,18 @@
-﻿const { createGrid } = agGrid;
+﻿// main.js (completo — usa agGrid global do CDN)
+const csrfToken =
+  window.csrfToken ||
+  document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
+  null;
 
-document.addEventListener('DOMContentLoaded', () => {
-  const gridDiv = document.getElementById('myGrid');
-  const searchInput = document.getElementById('search-input');
-  
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuthentication();
+
+  const gridDiv = document.getElementById("myGrid");
+  const searchInput = document.getElementById("search-input");
+
   if (!gridDiv) {
-    console.error('Elemento #myGrid não encontrado no DOM!');
-    showError('Elemento do grid não encontrado');
+    console.error("Elemento #myGrid não encontrado no DOM!");
+    showError("Elemento do grid não encontrado");
     return;
   }
 
@@ -14,69 +20,116 @@ document.addEventListener('DOMContentLoaded', () => {
   let rowData = [];
   let filteredData = [];
   let currentPage = 1;
-  let pageSize = parseInt(document.getElementById('items-per-page').value) || 10;
+  let pageSize = Number.parseInt(document.getElementById("items-per-page").value) || 10;
+
+  async function checkAuthentication() {
+    try {
+      const response = await fetch("/api/user-info/", {
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
+
+      if (!response.ok) {
+        window.location.href = "/login/";
+        return;
+      }
+
+      const userData = await response.json();
+      console.log("[v0] Usuário autenticado:", userData);
+      updateUserInterface(userData);
+    } catch (error) {
+      console.error("[v0] Erro ao verificar autenticação:", error);
+      window.location.href = "/login/";
+    }
+  }
+
+  function updateUserInterface(userData) {
+    const userElement = document.getElementById("current-user");
+    if (userElement) userElement.textContent = userData.username;
+
+    const roleElements = document.querySelectorAll(".user-role");
+    roleElements.forEach((el) => (el.textContent = `(${userData.group})`));
+  }
 
   // Campos editáveis
   const editableFields = [
-    'q', 'sostatus_releasedonholdreturned', 'data_liberacao',
-    'data_nfe', 'numero_nfe', 'nftgdt', 'nftg',
-    'dlvatdestination', 'status_impexp', 'eventos'
+    "q",
+    "sostatus_releasedonholdreturned",
+    "data_liberacao",
+    "data_nfe",
+    "numero_nfe",
+    "nftgdt",
+    "nftg",
+    "dlvatdestination",
+    "status_impexp",
+    "eventos",
   ];
 
-  // Todas as colunas
-const allColumns = [
-    { headerName: 'Q', field: 'q', sortable: true, filter: true, minWidth: 80 },
-    { headerName: 'C3#', field: 'c3', sortable: true, filter: true, minWidth: 80 },
-    { headerName: 'DELIVERY ID', field: 'deliveryid', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'SO STATUS - RELEASED / ON HOLD / RETURNED', field: 'sostatus_releasedonholdreturned', sortable: true, filter: true, minWidth: 220 },
-    { headerName: 'RELEASED DT', field: 'data_liberacao', sortable: true, filter: true, minWidth: 150 },
-    { headerName: 'MAWB', field: 'mawb', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'HAWB', field: 'hawb', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'CIP BRL', field: 'cipbrl', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'REF. GIANT', field: 'ref_giant', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'PC', field: 'pc', sortable: true, filter: true, minWidth: 80 },
-    { headerName: 'GROSS WEIGHT', field: 'peso', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'CHARGEABLE WEIGHT', field: 'peso_cobravel', sortable: true, filter: true, minWidth: 150 },
-    { headerName: 'TYPE', field: 'tipo', sortable: true, filter: true, minWidth: 100 },
-    { headerName: 'P/UP DT', field: 'pupdt', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'CI OK', field: 'ciok', sortable: true, filter: true, minWidth: 100 },
-    { headerName: 'LI ENTRY DT', field: 'lientrydt', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'LI OK', field: 'liok', sortable: true, filter: true, minWidth: 100 },
-    { headerName: 'OK TO SHIP', field: 'ok_to_ship', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'LI', field: 'li', sortable: true, filter: true, minWidth: 80 },
-    { headerName: 'HAWB DT', field: 'hawbdt', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'ESTIMATED BOOKING DT', field: 'estimatedbookingdt', sortable: true, filter: true, minWidth: 180 },
-    { headerName: 'ARRIVAL DESTINATION DT', field: 'arrivaldestinationdt', sortable: true, filter: true, minWidth: 200 },
-    { headerName: 'FUNDS REQUEST', field: 'solicitacao_fundos', sortable: true, filter: true, minWidth: 180 },
-    { headerName: 'FUNDS RECEIVED', field: 'fundos_recebidos', sortable: true, filter: true, minWidth: 180 },
-    { headerName: 'EADI DT', field: 'eadidt', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'DI / DUE DT', field: 'diduedt', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'DI / DUE NUMBER', field: 'diduenumber', sortable: true, filter: true, minWidth: 150 },
-    { headerName: 'ICMS PAID', field: 'icmspago', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'CHANNEL COLOR', field: 'canal_cor', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'CC RLSD DT', field: 'data_liberacao_ccr', sortable: true, filter: true, minWidth: 180 },
-    { headerName: 'NFE DT', field: 'data_nfe', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'NFE', field: 'numero_nfe', sortable: true, filter: true, minWidth: 140 },
-    { headerName: 'NFTG DT', field: 'nftgdt', sortable: true, filter: true, minWidth: 120 },
-    { headerName: 'NFTG', field: 'nftg', sortable: true, filter: true, minWidth: 100 },
-    { headerName: 'DLV AT DESTINATION', field: 'dlvatdestination', sortable: true, filter: true, minWidth: 180 },
-    { headerName: 'Status IMP/EXP', field: 'status_impexp', sortable: true, filter: true, minWidth: 150 },
-    { headerName: 'EVENT', field: 'eventos', sortable: false, filter: true, minWidth: 200 },
-    { headerName: 'REAL LEAD TIME', field: 'real_lead_time', sortable: true, filter: true, minWidth: 160 },
-    { headerName: 'SHIP FAILURE DAYS', field: 'ship_failure_days', sortable: true, filter: true, minWidth: 180 },
-    { headerName: 'TYPE', field: 'tipo_justificativa_atraso', sortable: true, filter: true, minWidth: 220 },
-    { headerName: 'FAILURE JUSTIFICATION', field: 'justificativa_atraso', sortable: true, filter: true, minWidth: 200 }
-];
+  // Todas as colunas (completas)
+  const allColumns = [
+    { headerName: "Q", field: "q", sortable: true, filter: true, minWidth: 80 },
+    { headerName: "C3#", field: "c3", sortable: true, filter: true, minWidth: 80 },
+    { headerName: "DELIVERY ID", field: "deliveryid", sortable: true, filter: true, minWidth: 140 },
+    {
+      headerName: "SO STATUS - RELEASED / ON HOLD / RETURNED",
+      field: "sostatus_releasedonholdreturned",
+      sortable: true,
+      filter: true,
+      minWidth: 220,
+    },
+    { headerName: "RELEASED DT", field: "data_liberacao", sortable: true, filter: true, minWidth: 150 },
+    { headerName: "MAWB", field: "mawb", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "HAWB", field: "hawb", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "CIP BRL", field: "cipbrl", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "REF. GIANT", field: "ref_giant", sortable: true, filter: true, minWidth: 140 },
+    { headerName: "PC", field: "pc", sortable: true, filter: true, minWidth: 80 },
+    { headerName: "GROSS WEIGHT", field: "peso", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "CHARGEABLE WEIGHT", field: "peso_cobravel", sortable: true, filter: true, minWidth: 150 },
+    { headerName: "TYPE", field: "tipo", sortable: true, filter: true, minWidth: 100 },
+    { headerName: "P/UP DT", field: "pupdt", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "CI OK", field: "ciok", sortable: true, filter: true, minWidth: 100 },
+    { headerName: "LI ENTRY DT", field: "lientrydt", sortable: true, filter: true, minWidth: 140 },
+    { headerName: "LI OK", field: "liok", sortable: true, filter: true, minWidth: 100 },
+    { headerName: "OK TO SHIP", field: "ok_to_ship", sortable: true, filter: true, minWidth: 140 },
+    { headerName: "LI", field: "li", sortable: true, filter: true, minWidth: 80 },
+    { headerName: "HAWB DT", field: "hawbdt", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "ESTIMATED BOOKING DT", field: "estimatedbookingdt", sortable: true, filter: true, minWidth: 180 },
+    {
+      headerName: "ARRIVAL DESTINATION DT",
+      field: "arrivaldestinationdt",
+      sortable: true,
+      filter: true,
+      minWidth: 200,
+    },
+    { headerName: "FUNDS REQUEST", field: "solicitacao_fundos", sortable: true, filter: true, minWidth: 180 },
+    { headerName: "FUNDS RECEIVED", field: "fundos_recebidos", sortable: true, filter: true, minWidth: 180 },
+    { headerName: "EADI DT", field: "eadidt", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "DI / DUE DT", field: "diduedt", sortable: true, filter: true, minWidth: 140 },
+    { headerName: "DI / DUE NUMBER", field: "diduenumber", sortable: true, filter: true, minWidth: 150 },
+    { headerName: "ICMS PAID", field: "icmspago", sortable: true, filter: true, minWidth: 140 },
+    { headerName: "CHANNEL COLOR", field: "canal_cor", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "CC RLSD DT", field: "data_liberacao_ccr", sortable: true, filter: true, minWidth: 180 },
+    { headerName: "NFE DT", field: "data_nfe", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "NFE", field: "numero_nfe", sortable: true, filter: true, minWidth: 140 },
+    { headerName: "NFTG DT", field: "nftgdt", sortable: true, filter: true, minWidth: 120 },
+    { headerName: "NFTG", field: "nftg", sortable: true, filter: true, minWidth: 100 },
+    { headerName: "DLV AT DESTINATION", field: "dlvatdestination", sortable: true, filter: true, minWidth: 180 },
+    { headerName: "Status IMP/EXP", field: "status_impexp", sortable: true, filter: true, minWidth: 150 },
+    { headerName: "EVENT", field: "eventos", sortable: false, filter: true, minWidth: 200 },
+    { headerName: "REAL LEAD TIME", field: "real_lead_time", sortable: true, filter: true, minWidth: 160 },
+    { headerName: "SHIP FAILURE DAYS", field: "ship_failure_days", sortable: true, filter: true, minWidth: 180 },
+    { headerName: "TYPE", field: "tipo_justificativa_atraso", sortable: true, filter: true, minWidth: 220 },
+    { headerName: "FAILURE JUSTIFICATION", field: "justificativa_atraso", sortable: true, filter: true, minWidth: 200 },
+  ];
 
-
-  // Separar colunas
+  // Separar colunas editáveis / não editáveis
   const editableColumns = [];
   const nonEditableColumns = [];
 
-  allColumns.forEach(col => {
+  allColumns.forEach((col) => {
     if (editableFields.includes(col.field)) {
       col.editable = true;
-      col.headerClass = 'editable-header';
+      col.headerClass = "editable-header";
       editableColumns.push(col);
     } else {
       nonEditableColumns.push(col);
@@ -101,11 +154,11 @@ const allColumns = [
       wrapText: true,
       autoHeight: false,
       wrapHeaderText: true,
-      autoHeaderHeight: true
+      autoHeaderHeight: true,
     },
     pagination: false,
     getRowHeight: () => 50,
-    domLayout: 'autoHeight',
+    domLayout: "autoHeight",
     onGridReady: (params) => {
       gridApi = params.api;
       loadData();
@@ -120,35 +173,36 @@ const allColumns = [
 
       try {
         const response = await fetch(`/api/dados/${data.id}/`, {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
           },
-          body: JSON.stringify({ [colDef.field]: newValue })
+          body: JSON.stringify({ [colDef.field]: newValue }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
           showError(`Erro ao atualizar: ${JSON.stringify(errorData)}`);
-          event.node.setDataValue(colDef.field, oldValue); // reverte
+          event.node.setDataValue(colDef.field, oldValue);
         }
       } catch (err) {
         console.error(err);
-        showError('Erro de conexão ao atualizar');
-        event.node.setDataValue(colDef.field, oldValue); // reverte
+        showError("Erro de conexão ao atualizar");
+        event.node.setDataValue(colDef.field, oldValue);
       }
-    }
+    },
   };
 
-  createGrid(gridDiv, gridOptions);
+  // cria o grid usando o global agGrid (CDN UMD)
+  agGrid.createGrid(gridDiv, gridOptions);
 
   async function loadData() {
     try {
       showLoading(true);
-      const response = await fetch('/api/dados/', {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
+      const response = await fetch("/api/dados/", {
+        credentials: "include",
+        headers: { Accept: "application/json" },
       });
       if (!response.ok) throw new Error(`Erro ${response.status}`);
 
@@ -177,11 +231,11 @@ const allColumns = [
 
   function updatePaginationControls(totalItems, start, end, currentPage, totalPages) {
     const elements = {
-      'showing-from': totalItems === 0 ? 0 : start + 1,
-      'showing-to': Math.min(end, totalItems),
-      'total-items': totalItems,
-      'current-page': currentPage,
-      'total-pages': totalPages
+      "showing-from": totalItems === 0 ? 0 : start + 1,
+      "showing-to": Math.min(end, totalItems),
+      "total-items": totalItems,
+      "current-page": currentPage,
+      "total-pages": totalPages,
     };
     Object.entries(elements).forEach(([id, value]) => {
       const el = document.getElementById(id);
@@ -190,53 +244,59 @@ const allColumns = [
   }
 
   function showLoading(show) {
-    const loader = document.getElementById('loading-indicator');
-    if (loader) loader.style.display = show ? 'block' : 'none';
+    const loader = document.getElementById("loading-indicator");
+    if (loader) loader.style.display = show ? "block" : "none";
   }
 
   function showError(msg) {
-    const el = document.getElementById('error-message');
+    const el = document.getElementById("error-message");
     if (el) {
       el.textContent = msg;
-      el.style.display = 'block';
-      setTimeout(() => el.style.display = 'none', 5000);
+      el.style.display = "block";
+      setTimeout(() => (el.style.display = "none"), 5000);
     }
   }
 
   let searchTimeout;
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      const term = searchInput.value.trim().toLowerCase();
-      filteredData = term
-        ? rowData.filter(item =>
-            Object.values(item).some(val => val && val.toString().toLowerCase().includes(term))
-          )
-        : [...rowData];
-      currentPage = 1;
-      updateGrid(filteredData);
-    }, 300);
-  });
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const term = searchInput.value.trim().toLowerCase();
+        filteredData = term
+          ? rowData.filter((item) =>
+              Object.values(item).some((val) => val && val.toString().toLowerCase().includes(term)),
+            )
+          : [...rowData];
+        currentPage = 1;
+        updateGrid(filteredData);
+      }, 300);
+    });
+  }
 
   const paginationControls = {
-    'first-page': () => currentPage = 1,
-    'prev-page': () => currentPage > 1 && currentPage--,
-    'next-page': () => {
+    "first-page": () => (currentPage = 1),
+    "prev-page": () => currentPage > 1 && currentPage--,
+    "next-page": () => {
       const totalPages = Math.ceil(filteredData.length / pageSize);
       if (currentPage < totalPages) currentPage++;
     },
-    'last-page': () => currentPage = Math.ceil(filteredData.length / pageSize)
+    "last-page": () => (currentPage = Math.ceil(filteredData.length / pageSize)),
   };
 
   Object.entries(paginationControls).forEach(([id, action]) => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('click', () => { action(); updateGrid(filteredData); });
+    if (el)
+      el.addEventListener("click", () => {
+        action();
+        updateGrid(filteredData);
+      });
   });
 
-  const itemsPerPageSelect = document.getElementById('items-per-page');
+  const itemsPerPageSelect = document.getElementById("items-per-page");
   if (itemsPerPageSelect) {
-    itemsPerPageSelect.addEventListener('change', (e) => {
-      pageSize = parseInt(e.target.value);
+    itemsPerPageSelect.addEventListener("change", (e) => {
+      pageSize = Number.parseInt(e.target.value);
       currentPage = 1;
       updateGrid(filteredData);
     });
