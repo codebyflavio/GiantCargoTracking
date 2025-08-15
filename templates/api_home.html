@@ -154,10 +154,10 @@
                 <span id="current-user">{{ user.username }}</span>
                 <span>({{ group }})</span>
             </div>
-            <a href="{% url 'logout' %}" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i>
-                Sair
-            </a>
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Sair</button>
+                </form>
         </div>
     </header>
     
