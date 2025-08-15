@@ -4,245 +4,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giant Cargo - API Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .header h1 {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .user-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: background 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        
-        .welcome-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-        
-        .welcome-card h2 {
-            color: #333;
-            margin-bottom: 1rem;
-        }
-        
-        .user-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .detail-item {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 5px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .detail-item strong {
-            color: #333;
-        }
-        
-        .actions-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .action-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
-            transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .action-btn i {
-            font-size: 2rem;
-        }
-    </style>
+    <title>Giant Cargo - Home</title>
+    
+    <!-- Estilos base -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <script>
+        const csrfToken = "{{ csrf_token }}";
+        const USER_ROLE = "{{ group|default:'visualizador' }}";
+        const USERNAME = "{{ user.username }}";
+    </script>
 </head>
 <body>
     <header class="header">
-        <h1>
-            <i class="fas fa-plane"></i>
-            Giant Cargo - API Dashboard
-        </h1>
-        <div class="user-info">
-            <div class="user-badge">
-                <i class="fas fa-user"></i>
-                <span id="current-user">{{ user.username }}</span>
-                <span>({{ group }})</span>
-            </div>
-                <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit">Sair</button>
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-plane"></i>
+                Giant Cargo
+            </h1>
+            <div class="user-info">
+                <div class="user-badge">
+                    <i class="fas fa-user-circle"></i>
+                    <div class="user-details-header">
+                        <span class="username">{{ user.username }}</span>
+                        <span class="user-role">{{ group|default:'visualizador' }}</span>
+                    </div>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Sair
+                    </button>
                 </form>
+            </div>
         </div>
     </header>
     
-    <div class="container">
-        <div class="welcome-card">
-            <h2>Bem-vindo, {{ user.first_name|default:user.username }}!</h2>
-            <p>Você está logado no sistema Giant Cargo com as seguintes informações:</p>
-            
-            <div class="user-details">
-                <div class="detail-item">
-                    <strong>Usuário:</strong> {{ user.username }}
+    <main class="main-content">
+        <div class="dashboard-container">
+            <!-- Reorganizando layout com cards mais limpos e organizados -->
+            <div class="welcome-section">
+                <div class="welcome-card">
+                    <div class="welcome-header">
+                        <h2>Bem-vindo, {{ user.first_name|default:user.username }}!</h2>
+                        <p>Painel de controle do sistema Giant Cargo</p>
+                    </div>
+                    
+                    <div class="user-info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <span class="label">Usuário</span>
+                                <span class="value">{{ user.username }}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <span class="label">Email</span>
+                                <span class="value">{{ user.email|default:"Não informado" }}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <div>
+                                <span class="label">Grupo</span>
+                                <span class="value">{{ group }}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <span class="label">Tipo</span>
+                                <span class="value">
+                                    {% if user.is_superuser %}Superusuário
+                                    {% elif user.is_staff %}Staff
+                                    {% else %}Usuário
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="detail-item">
-                    <strong>Email:</strong> {{ user.email|default:"Não informado" }}
-                </div>
-                <div class="detail-item">
-                    <strong>Grupo:</strong> {{ group }}
-                </div>
-                <div class="detail-item">
-                    <strong>Tipo:</strong> 
-                    {% if user.is_superuser %}
-                        Superusuário
-                    {% elif user.is_staff %}
-                        Staff
-                    {% else %}
-                        Usuário
-                    {% endif %}
+            </div>
+
+            <div class="actions-section">
+                <div class="actions-card">
+                    <h3>Ações Disponíveis</h3>
+                    <div class="actions-grid">
+                        <a href="/" class="action-btn primary">
+                            <div class="action-icon">
+                                <i class="fas fa-table"></i>
+                            </div>
+                            <div class="action-content">
+                                <span class="action-title">Visualizar Dados</span>
+                                <span class="action-desc">Acessar tabela de dados</span>
+                            </div>
+                        </a>
+                        <a href="/admin/" class="action-btn secondary">
+                            <div class="action-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="action-content">
+                                <span class="action-title">Administração</span>
+                                <span class="action-desc">Painel administrativo</span>
+                            </div>
+                        </a>
+                        <button class="action-btn tertiary" id="test-api-btn">
+                            <div class="action-icon">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <div class="action-content">
+                                <span class="action-title">Testar API</span>
+                                <span class="action-desc">Verificar conexão</span>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="actions-card">
-            <h3>Ações Disponíveis</h3>
-            <div class="actions-grid">
-                <a href="/" class="action-btn">
-                    <i class="fas fa-table"></i>
-                    <span>Visualizar Dados</span>
-                </a>
-                <a href="/admin/" class="action-btn">
-                    <i class="fas fa-cog"></i>
-                    <span>Administração</span>
-                </a>
-                <a href="#" onclick="testUserInfo()" class="action-btn">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Testar API</span>
-                </a>
-            </div>
-        </div>
-    </div>
-    
+    </main>
+
+    <!-- Scripts JS modulares -->
+    <script type="module" src="{% static 'js/auth.js' %}"></script>
+    <script type="module" src="{% static 'js/main.js' %}"></script>
     <script>
-        async function testUserInfo() {
+        document.getElementById('test-api-btn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('test-api-btn');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = '<div class="action-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="action-content"><span class="action-title">Testando...</span><span class="action-desc">Aguarde</span></div>';
+            btn.disabled = true;
+            
             try {
                 const response = await fetch('/api/user-info/', {
                     credentials: 'include',
                     headers: {
                         'Accept': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
+                        'X-CSRFToken': csrfToken
                     }
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    alert('Dados do usuário:\n' + JSON.stringify(data, null, 2));
-                } else {
-                    alert('Erro ao buscar informações do usuário');
-                }
-            } catch (error) {
-                alert('Erro de conexão: ' + error.message);
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                const response = await fetch('/api/user-info/', {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                if (!response.ok) {
-                    // Se não autenticado, redirecionar para login
-                    window.location.href = '/login/';
-                }
-            } catch (error) {
-                console.error('Erro ao verificar autenticação:', error);
+                if (!response.ok) throw new Error('Erro ao buscar informações do usuário');
+                const data = await response.json();
+                alert('✅ API funcionando!\n\nDados do usuário:\n' + JSON.stringify(data, null, 2));
+            } catch (err) {
+                alert('❌ Erro na API: ' + err.message);
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
             }
         });
     </script>

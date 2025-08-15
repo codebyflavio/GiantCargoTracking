@@ -5,48 +5,59 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Giant Cargo - Tracking</title>
+  
+  <!-- Adicionar meta tag para CSRF token -->
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
   <script>
     // CSRF token já disponível para fetch
-    const csrfToken = "{{ csrf_token }}";
+    window.csrfToken = "{{ csrf_token }}";
+    window.USER_ROLE = "{{ role|default:'visualizador' }}";
   </script>
 
+  <!-- Estilos -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-grid.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-theme-alpine.css" />
 </head>
 <body>
+  <!-- Loader -->
   <div id="loading-indicator" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000;">
     <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--clr-secondary);"></i>
   </div>
 
+  <!-- Mensagem de erro -->
   <div id="error-message" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); 
     background:#ff6b6b; color:white; padding:10px 20px; border-radius:5px; z-index:1000;">
   </div>
 
-  <header class="dashboard__header">
-    <h1 class="dashboard__title">
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__title">
       <i class="fa-solid fa-plane" aria-hidden="true"></i>
       Giant Cargo - Tracking
     </h1>
-    <!-- Adicionar informações do usuário logado -->
+
     <div class="user-section">
       <div class="user-info">
         <i class="fas fa-user"></i>
         <span id="current-user">{{ user.username }}</span>
         <span class="user-role">({{ role|default:'visualizador' }})</span>
       </div>
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+      <form action="{% url 'logout' %}" method="post" style="display:inline;">
         {% csrf_token %}
-        <button type="submit">Sair</button>
+        <button type="submit" class="logout-btn">Sair</button>
       </form>
     </div>
+
     <div class="search-container">
       <i class="fas fa-search search-icon" aria-hidden="true"></i>
       <input id="search-input" class="search-input" type="search" placeholder="Procurar..." aria-label="Pesquisar" />
     </div>
   </header>
 
+  <!-- Main / Grid -->
   <main class="table-container">
     <div class="table-toolbar">
       <div class="pagination-info">
@@ -70,13 +81,10 @@
     <section class="ag-theme-alpine grid-wrapper" id="myGrid"></section>
   </main>
 
-  <script>
-    // Role definido pela view index.py
-    const USER_ROLE = "{{ role|default:'visualizador' }}";
-    console.log("USER_ROLE:", USER_ROLE);
-  </script>
-
+  <!-- Scripts -->
+  <!-- Carregar ag-Grid antes dos módulos -->
   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.noStyle.js"></script>
   <script type="module" src="{% static 'js/main.js' %}"></script>
+
 </body>
 </html>
